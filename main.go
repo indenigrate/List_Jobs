@@ -7,8 +7,13 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
+	"github.com/indenigrate/List_Jobs/internal/database"
 	"github.com/joho/godotenv"
 )
+
+type apiConfig struct {
+	DB *database.Queries
+}
 
 func main() {
 	//INITIALISATION
@@ -35,7 +40,12 @@ func main() {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
-
+	//handle requests
+	router.Get("/healthz", handlerReadiness)
+	router.Get("/jobs", handlerListJob)
+	router.POST("/jobs", handlerCreateJob)
+	router.PUT("/jobs", handlerUpdateJob)
+	router.DELETE("/jobs", handlerDeleteJob)
 	//initiate server properties
 	srv := &http.Server{
 		Handler: router,
