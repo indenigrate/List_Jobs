@@ -7,12 +7,14 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
-	"github.com/indenigrate/List_Jobs/internal/database"
+
+	// "github.com/indenigrate/List_Jobs/internal/database"
 	"github.com/joho/godotenv"
 )
 
 type apiConfig struct {
-	DB *database.Queries
+	// DB *database.Queries
+	store Storage
 }
 
 func main() {
@@ -40,12 +42,21 @@ func main() {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
+	//initialise storage
+	store, err := NewPostgresStore("postgres", "postgres", "12345")
+	if err != nil {
+		log.Fatalf("unable to initialise storage: %v", err)
+	}
+
+	// fmt.Printf("%+v\n", store)
+	apiCfg := apiConfig{store: store}
 	//handle requests
 	router.Get("/healthz", handlerReadiness)
-	router.Get("/jobs", handlerListJob)
-	router.POST("/jobs", handlerCreateJob)
-	router.PUT("/jobs", handlerUpdateJob)
-	router.DELETE("/jobs", handlerDeleteJob)
+	router.Get("/jobs", apiCfg.handlerListJob)
+	router.Get("/jobs/{id}", apiCfg.handlerListJobByID)
+	router.Post("/jobs", apiCfg.handlerCreateJob)
+	router.Put("/jobs/{id}", apiCfg.handlerUpdateJob)
+	router.Delete("/jobs/{id}", apiCfg.handlerDeleteJob)
 	//initiate server properties
 	srv := &http.Server{
 		Handler: router,
