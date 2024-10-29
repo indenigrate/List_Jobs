@@ -13,7 +13,6 @@ import (
 )
 
 type apiConfig struct {
-	// DB *database.Queries
 	store Storage
 }
 
@@ -63,12 +62,13 @@ func main() {
 	// fmt.Printf("%+v\n", store)
 	apiCfg := apiConfig{store: store}
 	//handle requests
+	router.Post("/login", apiCfg.handlerLogin)
 	router.Get("/healthz", handlerReadiness)
 	router.Get("/jobs", apiCfg.handlerListJob)
 	router.Get("/jobs/filter", apiCfg.handlerListJobByFilter)
 	//  /jobs/filter?job-title=JOB%20TITLE&location=JOB%20LOCATION&job-type=JOB%20TYPE
 	router.Get("/jobs/{id}", apiCfg.handlerListJobByID)
-	router.Post("/jobs", apiCfg.handlerCreateJob)
+	router.Post("/jobs", withJWTAuth(apiCfg.handlerCreateJob))
 	router.Put("/jobs/{id}", apiCfg.handlerUpdateJob)
 	router.Delete("/jobs/{id}", apiCfg.handlerDeleteJob)
 	//initiate server properties
