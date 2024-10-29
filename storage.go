@@ -132,7 +132,7 @@ func (s *PostgresStore) UpdateJob(id int, job *Job) error {
 }
 
 func (s *PostgresStore) GetJob() ([]*Job, error) {
-	rows, err := s.db.Query("SELECT * FROM Job")
+	rows, err := s.db.Query("SELECT * FROM Job ORDER BY id ASC")
 	if err != nil {
 		fmt.Printf("%+v\n", err)
 		return nil, err
