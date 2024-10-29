@@ -43,7 +43,19 @@ func main() {
 		MaxAge:           300,
 	}))
 	//initialise storage
-	store, err := NewPostgresStore("postgres", "postgres", "12345")
+	user := os.Getenv("PostgresUser")
+	if user == "" {
+		log.Fatal("PostgresUser is not found in the environment")
+	}
+	dbname := os.Getenv("PostgresDbname")
+	if dbname == "" {
+		log.Fatal("PostgresDbname is not found in the environment")
+	}
+	pass := os.Getenv("PostgresPass")
+	if pass == "" {
+		log.Fatal("PostgresPass is not found in the environment")
+	}
+	store, err := NewPostgresStore(user, dbname, pass)
 	if err != nil {
 		log.Fatalf("unable to initialise storage: %v", err)
 	}
@@ -53,6 +65,8 @@ func main() {
 	//handle requests
 	router.Get("/healthz", handlerReadiness)
 	router.Get("/jobs", apiCfg.handlerListJob)
+	router.Get("/jobs/filter", apiCfg.handlerListJobByFilter)
+	//  /jobs/filter?job-title=JOB%20TITLE&location=JOB%20LOCATION&job-type=JOB%20TYPE
 	router.Get("/jobs/{id}", apiCfg.handlerListJobByID)
 	router.Post("/jobs", apiCfg.handlerCreateJob)
 	router.Put("/jobs/{id}", apiCfg.handlerUpdateJob)

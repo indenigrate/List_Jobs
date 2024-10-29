@@ -11,6 +11,7 @@ type Storage interface {
 	CreateJob(*Job) error
 	DeleteJob(int) error
 	GetJob() ([]*Job, error)
+	GetJobByFilter(string, string, string) ([]*Job, error)
 	GetJobByID(int) (*Job, error)
 	UpdateJob(int, *Job) error
 }
@@ -132,6 +133,44 @@ func (s *PostgresStore) UpdateJob(id int, job *Job) error {
 
 func (s *PostgresStore) GetJob() ([]*Job, error) {
 	rows, err := s.db.Query("SELECT * FROM Job")
+	if err != nil {
+		fmt.Printf("%+v\n", err)
+		return nil, err
+	}
+	jobs := []*Job{}
+	for rows.Next() {
+		job := new(Job)
+		job, err := scanJob(rows)
+		if err != nil {
+			return nil, err
+		}
+		jobs = append(jobs, job)
+	}
+	return jobs, nil
+}
+
+func (s *PostgresStore) GetJobByFilter(JobTitle, location, JobType string) ([]*Job, error) {
+	query := "SELECT * FROM Job WHERE 1=1"
+	args := []interface{}{}
+	// args := []string{}
+	count := 1
+	if JobTitle != "" {
+		query += fmt.Sprintf(" AND JobTitle ILIKE $%d", count)
+		args = append(args, "%"+JobTitle+"%")
+		count += 1
+	}
+	if location != "" {
+		// query += " AND location ILIKE $2"
+		query += fmt.Sprintf(" AND Location ILIKE $%d", count)
+		args = append(args, "%"+location+"%")
+		count += 1
+	}
+	if JobType != "" {
+		// query += " AND job_type = $3"
+		query += fmt.Sprintf(" AND JobType ILIKE $%d", count)
+		args = append(args, "%"+JobType+"%")
+	}
+	rows, err := s.db.Query(query, args...)
 	if err != nil {
 		fmt.Printf("%+v\n", err)
 		return nil, err

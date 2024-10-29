@@ -84,6 +84,18 @@ func (apiCfg *apiConfig) handlerDeleteJob(w http.ResponseWriter, r *http.Request
 	respondWithJSON(w, 200, fmt.Sprintf("Index %d deleted succesfully", id))
 }
 
+func (apiCfg *apiConfig) handlerListJobByFilter(w http.ResponseWriter, r *http.Request) {
+	JobTitle := r.URL.Query().Get("job_title")
+	location := r.URL.Query().Get("location")
+	jobType := r.URL.Query().Get("job_type")
+
+	jobs, err := apiCfg.store.GetJobByFilter(JobTitle, location, jobType)
+	if err != nil {
+		respondWithError(w, 400, "Error in handlerListJobByFilter")
+	}
+	respondWithJSON(w, 200, jobs)
+}
+
 func getID(r *http.Request) (int, error) {
 	id := chi.URLParam(r, "id")
 	intId, err := strconv.Atoi(id)
