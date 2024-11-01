@@ -24,6 +24,7 @@ func (apiCfg *apiConfig) handlerCreateJob(w http.ResponseWriter, r *http.Request
 	job, err := readJobInput(r)
 	if err != nil {
 		respondWithError(w, 400, err.Error())
+		return
 	}
 	if err := apiCfg.store.CreateJob(job); err != nil {
 		respondWithError(w, 400, "something went wrong in handlerCreateJob")
@@ -125,7 +126,7 @@ func readJobInput(r *http.Request) (*Job, error) {
 	return job, nil
 }
 
-// create jwt when admin logs in
+// create and return jwt(json web Token) when admin logs in
 // default username=admin
 // default password=admin
 func (apiCfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {

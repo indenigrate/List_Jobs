@@ -22,7 +22,9 @@ type PostgresStore struct {
 
 func NewPostgresStore(user, dbname, pass string) (*PostgresStore, error) {
 	//save password in .env
-	connStr := fmt.Sprintf("user=%v dbname=%v password=%v sslmode=disable", user, dbname, pass)
+	// connStr := fmt.Sprintf("user=%v dbname=%v password=%v sslmode=disable", user, dbname, pass)
+	connStr := fmt.Sprintf("postgres://%s:%s@postgres:5432/%s?sslmode=disable", user, pass, dbname)
+	fmt.Printf("%v\n", connStr)
 	// connStr := "user=postgres dbname=postgres password=12345 sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
@@ -45,7 +47,17 @@ func (s *PostgresStore) Init() error {
 }
 
 func (s *PostgresStore) createJobTable() error {
-	query := `CREATE TABLE IF NOT EXISTS Job (
+	//check if the table already exists
+	var name sql.NullString
+	query := "SELECT to_regclass('public.Job');"
+	err := s.db.QueryRow(query).Scan(&name)
+	if err != nil {
+		return err
+	}
+	// fmt.Printf("name of table is %+v\n", name)
+
+	//if not then create table
+	query = `CREATE TABLE IF NOT EXISTS Job (
 		id serial PRIMARY KEY NOT NULL,
 		JobTitle   VARCHAR(100) NOT NULL,
 		CompanyName VARCHAR(50) NOT NULL,
@@ -53,8 +65,36 @@ func (s *PostgresStore) createJobTable() error {
 		JobType     VARCHAR(50) NOT NULL,
 		Description TEXT NOT NULL
 	);`
-	_, err := s.db.Exec(query)
-	return err
+	_, err = s.db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	if name.Valid {
+		fmt.Println("Postgres Table exists:", name.String)
+	} else {
+		fmt.Println("Postgres Table does not exist, creating new table and initialising it with default test values")
+		query = `INSERT INTO Job (JobTitle, CompanyName, Location, JobType, Description) VALUES
+		('Software Engineer', 'Tech Solutions Inc.', 'New York, NY', 'Full-time', 'Develop scalable applications.'),
+		('Product Manager', 'Innovate Corp', 'San Francisco, CA', 'Full-time', 'Lead product teams and strategies.'),
+		('Data Analyst', 'Data Insights LLC', 'Remote', 'Part-time', 'Analyze data and create reports.'),
+		('Marketing Specialist', 'Creative Agency', 'Remote', 'Contract', 'Implement marketing strategies.'),
+		('UI/UX Designer', 'Design Hub', 'Chicago, IL', 'Full-time', 'Create user-friendly interfaces.'),
+		('Systems Administrator', 'IT Services Co.', 'Remote', 'Full-time', 'Manage IT infrastructure and support.'),
+		('Content Writer', 'Media Group', 'Remote', 'Freelance', 'Write engaging articles and content.'),
+		('Sales Associate', 'Retail Corp', 'Seattle, WA', 'Part-time', 'Assist customers and drive sales.'),
+		('DevOps Engineer', 'Cloud Solutions', 'Boston, MA', 'Full-time', 'Automate deployment processes.'),
+		('Graphic Designer', 'Creative Studio', 'Portland, OR', 'Contract', 'Design visuals for marketing campaigns.');
+		`
+		_, err := s.db.Exec(query)
+		if err != nil {
+			return err
+		}
+	}
+	//check if the table exists
+	//if it does leave it as it is
+	//if it does not initialise it with the following quer for testing purposes
+	return nil
 }
 
 func (s *PostgresStore) CreateJob(job *Job) error {

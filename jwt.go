@@ -37,6 +37,7 @@ func withJWTAuth(handlerfunc http.HandlerFunc) http.HandlerFunc {
 			respondWithError(w, http.StatusForbidden, "api error: invalid token")
 			return
 		}
+		//writing the token to the environment context
 		ctx := context.WithValue(r.Context(), "token", token)
 		handlerfunc(w, r.WithContext(ctx))
 	}

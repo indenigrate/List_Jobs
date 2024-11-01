@@ -21,7 +21,7 @@ func main() {
 	//loading .env (environment variables)
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal("Erro r loading .env file")
+		log.Fatal("Error loading .env file")
 	}
 	//retrieving PORT variable data
 	portString := os.Getenv("PORT")
