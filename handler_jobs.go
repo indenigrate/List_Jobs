@@ -60,6 +60,14 @@ func (apiCfg *apiConfig) handlerListJobByID(w http.ResponseWriter, r *http.Reque
 }
 
 func (apiCfg *apiConfig) handlerUpdateJob(w http.ResponseWriter, r *http.Request) {
+	token := r.Context().Value("token").(*jwt.Token)
+	claims := token.Claims.(jwt.MapClaims)
+
+	// Check if the user role is admin
+	if claims["role"] != "admin" {
+		respondWithError(w, http.StatusForbidden, "access denied: admin only")
+		return
+	}
 	//read id
 	id, err := getID(r)
 	if err != nil {
@@ -81,6 +89,14 @@ func (apiCfg *apiConfig) handlerUpdateJob(w http.ResponseWriter, r *http.Request
 
 func (apiCfg *apiConfig) handlerDeleteJob(w http.ResponseWriter, r *http.Request) {
 
+	token := r.Context().Value("token").(*jwt.Token)
+	claims := token.Claims.(jwt.MapClaims)
+
+	// Check if the user role is admin
+	if claims["role"] != "admin" {
+		respondWithError(w, http.StatusForbidden, "access denied: admin only")
+		return
+	}
 	//get id
 	id, err := getID(r)
 	if err != nil {
@@ -94,6 +110,7 @@ func (apiCfg *apiConfig) handlerDeleteJob(w http.ResponseWriter, r *http.Request
 		return
 	}
 	respondWithJSON(w, 200, fmt.Sprintf("Index %d deleted succesfully", id))
+
 }
 
 func (apiCfg *apiConfig) handlerListJobByFilter(w http.ResponseWriter, r *http.Request) {

@@ -66,11 +66,11 @@ func main() {
 	router.Get("/healthz", handlerReadiness)
 	router.Get("/jobs", apiCfg.handlerListJob)
 	router.Get("/jobs/filter", apiCfg.handlerListJobByFilter)
-	//  /jobs/filter?job-title=JOB%20TITLE&location=JOB%20LOCATION&job-type=JOB%20TYPE
+	//  /jobs/filter?job_title=JOB%20TITLE&location=JOB%20LOCATION&job_type=JOB%20TYPE
 	router.Get("/jobs/{id}", apiCfg.handlerListJobByID)
 	router.Post("/jobs", withJWTAuth(apiCfg.handlerCreateJob))
-	router.Put("/jobs/{id}", apiCfg.handlerUpdateJob)
-	router.Delete("/jobs/{id}", apiCfg.handlerDeleteJob)
+	router.Put("/jobs/{id}", withJWTAuth(apiCfg.handlerUpdateJob))
+	router.Delete("/jobs/{id}", withJWTAuth(apiCfg.handlerDeleteJob))
 	//initiate server properties
 	srv := &http.Server{
 		Handler: router,
