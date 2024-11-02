@@ -14,7 +14,7 @@ This is a Dockerized CRUD API built in Go, using PostgreSQL as the database.
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/indenigrate/list_jobs.git
+   git clone https://github.com/indenigrate/List_Jobs.git
    cd List_Jobs
 2. Build and run:
 
